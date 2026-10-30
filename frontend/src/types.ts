@@ -1,0 +1,5 @@
+export type User = { id: number; full_name: string; email: string }
+export type Observation = { score: number; severity: string }
+export type Analysis = { id: number; skin_type_estimate: string; confidence: number; observations: Record<string, Observation>; quality: { quality_score: number; warnings: string[] }; model_mode: string; mock_notice?: string; disclaimer: string; created_at: string }
+export type Product = { id: number; name: string; brand: string; category: string; description: string; skin_types: string[]; concerns: string[]; ingredients: string[]; price: number; currency: string; rating?: number | null; fragrance_free: boolean; vegan: boolean; cruelty_free: boolean; suitable_for_sensitive_skin?: boolean; is_demo: boolean; image_url?: string | null; amazon_url: string; flipkart_url: string; match_score?: number; reasons?: string[]; saved?: boolean }
+export type ApiResult<T> = { success: boolean; data: T; message: string }

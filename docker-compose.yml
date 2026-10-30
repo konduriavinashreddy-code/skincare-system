@@ -1,0 +1,47 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: dermacare
+      POSTGRES_USER: dermacare
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-local-dermacare-change-me}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dermacare -d dermacare"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  ml-service:
+    build: ./ml-service
+    environment:
+      MODEL_PATH: /app/models/skin_model.pt
+    volumes:
+      - ./ml-service/models:/app/models:ro
+    profiles: ["model"]
+  backend:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgresql+psycopg://dermacare:${POSTGRES_PASSWORD:-local-dermacare-change-me}@postgres:5432/dermacare
+      JWT_SECRET: ${JWT_SECRET:-local-development-secret-change-me}
+      UPLOAD_DIR: /data/uploads
+      AI_MODE: ${AI_MODE:-mock}
+      ML_SERVICE_URL: http://ml-service:8001
+      CORS_ORIGINS: http://localhost:5173
+      MAX_UPLOAD_MB: 8
+    volumes:
+      - uploads:/data/uploads
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+volumes:
+  postgres_data:
+  uploads:
